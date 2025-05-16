@@ -1,7 +1,6 @@
 transformers
 torch
 langchain
-faiss-cpu
-pypdf
-gradio
 sentence-transformers
+faiss-cpu
+gradio

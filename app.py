@@ -5,11 +5,13 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQA
 
-# Caricamento documenti PDF
+# Caricamento PDF
 documents = []
 data_path = "data"
+os.makedirs(data_path, exist_ok=True)
 for file in os.listdir(data_path):
     if file.endswith(".pdf"):
         loader = PyPDFLoader(os.path.join(data_path, file))
@@ -19,24 +21,20 @@ for file in os.listdir(data_path):
 splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
 docs = splitter.split_documents(documents)
 
-# Embedding + FAISS vector store
+# Embedding + FAISS
 embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 db = FAISS.from_documents(docs, embedding_model)
 
-# Modello LLM gratuito Hugging Face
-llm_pipeline = pipeline("text-generation", model="tiiuae/falcon-7b-instruct", max_new_tokens=200)
+# Pipeline Hugging Face (LLM)
+hf_pipeline = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=200)
+llm = HuggingFacePipeline(pipeline=hf_pipeline)
 
-# RAG chain
+# Creazione RAG chain con RetrievalQA
+qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=db.as_retriever())
+
+# Funzione da collegare a Gradio
 def answer_question(query):
-    context_docs = db.similarity_search(query, k=3)
-    context = "\n\n".join([doc.page_content for doc in context_docs])
-    prompt = f"""Contesto:
-{context}
-
-Domanda: {query}
-Risposta:"""
-    output = llm_pipeline(prompt)[0]["generated_text"]
-    return output[len(prompt):].strip()
+    return qa_chain.run(query)
 
 # Interfaccia Gradio
 demo = gr.Interface(
