@@ -30,11 +30,11 @@ llm_pipeline = pipeline("text-generation", model="tiiuae/falcon-7b-instruct", ma
 def answer_question(query):
     context_docs = db.similarity_search(query, k=3)
     context = "\n\n".join([doc.page_content for doc in context_docs])
-    prompt = f"Contesto:
+    prompt = f"""Contesto:
 {context}
 
 Domanda: {query}
-Risposta:"
+Risposta:"""
     output = llm_pipeline(prompt)[0]["generated_text"]
     return output[len(prompt):].strip()
 
