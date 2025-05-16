@@ -26,7 +26,7 @@ embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-Mi
 db = FAISS.from_documents(docs, embedding_model)
 
 # Pipeline Hugging Face (LLM)
-hf_pipeline = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=200)
+hf_pipeline = pipeline("text2text-generation", model="google/flan-t5-small", max_new_tokens=200)
 llm = HuggingFacePipeline(pipeline=hf_pipeline)
 
 # Creazione RAG chain con RetrievalQA
