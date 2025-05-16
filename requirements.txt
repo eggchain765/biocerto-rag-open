@@ -1,6 +1,7 @@
 transformers
 torch
 langchain
+langchain_community
 sentence-transformers
 faiss-cpu
 gradio
